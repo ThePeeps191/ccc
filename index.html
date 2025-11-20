@@ -135,7 +135,7 @@
             <a href="/ccc/" class="linkbtn" id="backBtn">← Back</a>
             <div class="editor-title" id="editorTitle">Loading...</div>
 
-            <!-- right-side controls: raw link then copy button -->
+            <!-- right-side controls: dmoj link then copy button -->
             <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
               <div id="rawLinkWrap" style="color:var(--muted);font-size:13px"></div>
 
@@ -238,10 +238,12 @@
       const viewLink = el('a', { href: `?p=${encodeURIComponent(item.id)}&lang=${encodeURIComponent(lang)}`, class: 'linkbtn' }, 'Solution');
       viewLink.addEventListener('click', (ev) => { ev.preventDefault(); openProblem(item.id, lang); });
 
-      const rawLink = el('a', { href: SOURCE_PREFIX + filename, target: '_blank', class: 'linkbtn' }, 'Raw');
+      // DMOJ link (replaces "Raw"); open new tab
+      const dmojUrl = `https://dmoj.ca/problem/${encodeURIComponent(item.id)}`;
+      const dmojLink = el('a', { href: dmojUrl, target: '_blank', rel: 'noopener', class: 'linkbtn' }, 'DMOJ');
 
       tdLinks.appendChild(viewLink);
-      tdLinks.appendChild(rawLink);
+      tdLinks.appendChild(dmojLink);
 
       tr.appendChild(td1);
       tr.appendChild(td2);
@@ -374,8 +376,11 @@
 
       const rawLinkWrap = document.getElementById('rawLinkWrap'); rawLinkWrap.innerHTML = '';
       const filename = `${id}.${lang}`;
-      const rawA = el('a', { href: SOURCE_PREFIX + filename, target: '_blank', class: 'linkbtn' }, 'Open raw');
-      rawLinkWrap.appendChild(rawA);
+
+      // DMOJ link (replace "Raw" in editor header as well)
+      const dmojUrl = `https://dmoj.ca/problem/${encodeURIComponent(id)}`;
+      const dmojA = el('a', { href: dmojUrl, target: '_blank', rel: 'noopener', class: 'linkbtn' }, 'DMOJ');
+      rawLinkWrap.appendChild(dmojA);
 
       // show loading indicator and render solution block immediately
       showLoading(true);
