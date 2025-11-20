@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CCC Solutions — Canadian Computing Competition</title>
+
+  <!-- Monaco CSS -->
+  <link rel="stylesheet" data-name="vs/editor/editor.main"
+    href="https://unpkg.com/monaco-editor@0.34.0/min/vs/editor/editor.main.css" />
+
+  <!-- KaTeX for rendering math (AAA ... AAA) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#071226; --card:#0b1220; --muted:#94a3b8; --accent:#7c3aed; --glass: rgba(255,255,255,0.03);
+      --mono: 'Menlo', 'Monaco', 'Consolas', monospace;
+    }
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial}
+    body{background: linear-gradient(180deg,#061226 0%, #07122a 70%); color:#e6eef6;}
+    .wrap{max-width:1100px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#4f46e5);display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+    .controls{display:flex;gap:8px;align-items:center}
+    .search{padding:8px 12px;border-radius:10px;border:0;background:var(--card);color:inherit;min-width:240px}
+    .small{font-size:13px;color:var(--muted)}
+
+    .table{margin-top:18px;border-radius:12px;overflow:hidden;box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+    table{width:100%;border-collapse:collapse}
+    thead{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter: blur(6px)}
+    th,td{padding:12px 14px;text-align:left;font-size:14px}
+    th{font-weight:600;color:var(--muted)}
+    tbody tr{border-top:1px solid rgba(255,255,255,0.02);transition:background .12s}
+    tbody tr:hover{background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent)}
+
+    .tag{display:inline-block;padding:6px 8px;border-radius:8px;background:var(--glass);font-weight:600;font-size:13px}
+    .linkbtn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);text-decoration:none;margin-right:6px}
+
+    /* editor view */
+    #editorView{display:none}
+    .editor-container{height:calc(100vh - 160px);display:flex;flex-direction:column}
+    .editor-header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:linear-gradient(180deg,#061424 0%, #07182a 100%);border-bottom:1px solid rgba(255,255,255,0.03)}
+    .editor-title{font-weight:600}
+    #editor{flex:1;border-radius:8px;overflow:hidden;margin:12px;background:#0b1220; min-height:200px;}
+
+    /* loading text above editor (visible while Monaco loads) */
+    #loadingLine {
+      display:none;
+      text-align:left;
+      color:var(--muted);
+      font-size:13px;
+      margin: 10px 12px 0;
+      padding-left: 6px;
+    }
+
+    /* solution area */
+    #solutionWrap {
+      margin: 12px;
+      padding: 12px;
+      border-radius:8px;
+      background: rgba(255,255,255,0.02);
+    }
+    #solutionWrap h2 { margin:0 0 8px 0; font-size:15px; color:#e6eef6; }
+    .solution-line { margin:6px 0; color:#dbeafe; white-space:pre-wrap; font-size:14px; }
+    .solution-math { display:inline-block; vertical-align:middle; }
+
+    /* Copy button */
+    .copy-btn{
+      margin-left:12px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:transparent;
+      color:var(--muted);
+      cursor:pointer;
+      font-size:13px;
+    }
+    .copy-btn svg{width:14px;height:14px;fill:currentColor}
+    .copy-btn:active{transform:translateY(1px)}
+
+    /* year header */
+    #yearHeader { cursor: pointer; user-select: none; }
+
+    @media (max-width:760px){.wrap{padding:14px}.controls{flex-direction:column;align-items:stretch}.search{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <header>
+      <div class="brand">
+        <div class="logo">CCC</div>
+        <div>
+          <h1>Canadian Computing Competition — My Solutions</h1>
+          <p class="lead">Browse CCC problems and view code with written solutions.</p>
+        </div>
+      </div>
+      <div class="controls">
+        <input id="search" class="search" placeholder="Search by id, title, or year..." />
+        <div class="small">Hosted: thepeeps191.github.io/ccc</div>
+      </div>
+    </header>
+
+    <main>
+      <div id="listView">
+        <div class="table">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:140px">Problem</th>
+                <th>Title</th>
+                <th id="yearHeader" style="width:120px">Year ▼</th>
+                <th style="width:80px">Lang</th>
+                <th style="width:220px">Links</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="editorView">
+        <div class="editor-container">
+          <div class="editor-header">
+            <a href="/ccc/" class="linkbtn" id="backBtn">← Back</a>
+            <div class="editor-title" id="editorTitle">Loading...</div>
+
+            <!-- right-side controls: raw link then copy button -->
+            <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+              <div id="rawLinkWrap" style="color:var(--muted);font-size:13px"></div>
+
+              <button id="copyBtn" class="copy-btn" title="Copy code to clipboard" aria-label="Copy code">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4h-1.5l-.71-.71A.99.99 0 0 0 13.09 3H10.9c-.26 0-.52.1-.71.29L9.5 4H8c-1.1 0-2 .9-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6c0-1.1-.9-2-2-2zm-4 0h-2v2h2V4z"/></svg>
+                <span id="copyLabel">Copy code</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="loadingLine">Code is loading...</div>
+          <div id="editor" aria-label="code editor area"> <!-- Monaco mounts here --> </div>
+
+          <!-- Solution block -->
+          <div id="solutionWrap" aria-live="polite">
+            <h2>Solution</h2>
+            <div id="solutionContent">Solution has not been created</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // CONFIG
+    const MANIFEST = './problems.json';
+    const SOURCE_PREFIX = './ccc/'; // solution files like ccc/ccc25s1.cpp
+
+    // helpers
+    function el(tag, attrs = {}, text = '') {
+      const e = document.createElement(tag);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      if (text) e.textContent = text;
+      return e;
+    }
+
+    function prettyLang(lang){
+      if(!lang) return '';
+      const l = String(lang).toLowerCase();
+      if(l === 'cpp') return 'C++';
+      if(l === 'c') return 'C';
+      if(l === 'py' || l === 'python') return 'Python';
+      return lang;
+    }
+
+    // parse id like ccc25s1 => year=2025, stage=1
+    function parseCCCId(id){
+      const m = String(id).toLowerCase().match(/^ccc(\d{2})s([1-5])$/);
+      if(!m) return null;
+      const yy = Number(m[1]);
+      const year = 2000 + yy;
+      const stage = Number(m[2]); // 1..5
+      return { year, stage, shortYear: String(m[1]).padStart(2,'0') };
+    }
+
+    // format title "CCC '25 S1 - Title"
+    function formatFullTitle(item){
+      const pid = item.id || '';
+      const parsed = parseCCCId(pid);
+      const humanTitle = item.title || '';
+      if(parsed){
+        return `CCC '${String(parsed.shortYear)} S${parsed.stage} - ${humanTitle}`;
+      }
+      return `${pid} - ${humanTitle}`;
+    }
+
+    // compute year display "2025 S1"
+    function yearDisplay(item){
+      const parsed = parseCCCId(item.id || '');
+      if(parsed) return `${parsed.year} S${parsed.stage}`;
+      return '';
+    }
+
+    let manifest = [];
+    // sort state: true = ascending, false = descending (default descending)
+    let yearSortAsc = false;
+
+    function appendRow(item){
+      const tbody = document.getElementById('tbody');
+      const tr = document.createElement('tr');
+
+      const td1 = document.createElement('td');
+      td1.innerHTML = `<div class="tag">${item.id}</div>`;
+
+      const td2 = document.createElement('td');
+      td2.textContent = formatFullTitle(item);
+
+      const tdYear = document.createElement('td');
+      tdYear.textContent = yearDisplay(item);
+
+      const tdLang = document.createElement('td');
+      tdLang.textContent = prettyLang(item.lang || 'cpp');
+
+      const tdLinks = document.createElement('td');
+
+      // filename in ccc folder (default cpp)
+      const lang = (item.lang || 'cpp').toString().replace(/^\.+/, '');
+      const filename = `${item.id}.${lang}`;
+
+      const viewLink = el('a', { href: `?p=${encodeURIComponent(item.id)}&lang=${encodeURIComponent(lang)}`, class: 'linkbtn' }, 'Solution');
+      viewLink.addEventListener('click', (ev) => { ev.preventDefault(); openProblem(item.id, lang); });
+
+      const rawLink = el('a', { href: SOURCE_PREFIX + filename, target: '_blank', class: 'linkbtn' }, 'Raw');
+
+      tdLinks.appendChild(viewLink);
+      tdLinks.appendChild(rawLink);
+
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      tr.appendChild(tdYear);
+      tr.appendChild(tdLang);
+      tr.appendChild(tdLinks);
+      tbody.appendChild(tr);
+    }
+
+    // sort manifest by year desc (then stage) with toggle
+    function renderTable(filter=''){
+      const tbody = document.getElementById('tbody'); tbody.innerHTML = '';
+      const q = String(filter || '').trim().toLowerCase();
+
+      const items = (manifest || []).slice();
+
+      items.sort((a,b) => {
+        const pa = parseCCCId(a.id || '') || { year: -Infinity, stage: 999 };
+        const pb = parseCCCId(b.id || '') || { year: -Infinity, stage: 999 };
+
+        // primary: year
+        if(pa.year !== pb.year){
+          return yearSortAsc ? (pa.year - pb.year) : (pb.year - pa.year);
+        }
+        // same year: stage order S1 first (stage numeric ascending)
+        return yearSortAsc ? (pa.stage - pb.stage) : (pb.stage - pa.stage);
+      });
+
+      items.forEach(item => {
+        const line = (item.id + ' ' + (item.title || '') + ' ' + yearDisplay(item)).toLowerCase();
+        if(q && !line.includes(q)) return;
+        appendRow(item);
+      });
+    }
+
+    // show/hide loading line
+    function showLoading(on){
+      const el = document.getElementById('loadingLine');
+      if(!el) return;
+      el.style.display = on ? 'block' : 'none';
+    }
+
+    // RENDER SOLUTION block (reads item.sol and processes AAA...AAA latex)
+    function renderSolutionForItem(item){
+      const out = document.getElementById('solutionContent');
+      if(!out) return;
+      out.innerHTML = '';
+      if(!item || !item.sol){
+        out.textContent = 'Solution has not been created';
+        return;
+      }
+
+      const sol = String(item.sol || '');
+      const lines = sol.split(/\r?\n/);
+      const re = /AAA(.*?)AAA/gs;
+
+      lines.forEach(line => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'solution-line';
+
+        let lastIndex = 0;
+        let anyMatch = false;
+        let m;
+        while((m = re.exec(line)) !== null){
+          anyMatch = true;
+          const before = line.slice(lastIndex, m.index);
+          if(before) wrapper.appendChild(document.createTextNode(before));
+          const latexText = m[1];
+          const span = document.createElement('span');
+          span.className = 'solution-math';
+          span.setAttribute('data-latex', latexText);
+          wrapper.appendChild(span);
+          lastIndex = re.lastIndex;
+        }
+        if(!anyMatch){
+          wrapper.textContent = line;
+        } else {
+          const tail = line.slice(lastIndex);
+          if(tail) wrapper.appendChild(document.createTextNode(tail));
+        }
+        out.appendChild(wrapper);
+      });
+
+      // Render KaTeX spans
+      function renderKatexSpans(){
+        const spans = document.querySelectorAll('#solutionContent .solution-math');
+        spans.forEach(s => {
+          const latex = s.getAttribute('data-latex') || '';
+          try {
+            katex.render(latex, s, { throwOnError: false, displayMode: false });
+          } catch(e){
+            s.textContent = latex;
+          }
+        });
+      }
+
+      if(window.katex){
+        renderKatexSpans();
+      } else {
+        let attempts = 0;
+        const t = setInterval(() => {
+          attempts++;
+          if(window.katex){
+            clearInterval(t);
+            renderKatexSpans();
+          } else if(attempts > 30){
+            clearInterval(t);
+            const spans = document.querySelectorAll('#solutionContent .solution-math');
+            spans.forEach(s => s.textContent = s.getAttribute('data-latex') || '');
+          }
+        }, 100);
+      }
+    }
+
+    // OPEN problem (editor view)
+    function openProblem(id, overrideLang){
+      const fromManifest = manifest.find(x => x.id === id) || {};
+      const langFromManifest = fromManifest.lang || 'cpp';
+      const lang = overrideLang || new URLSearchParams(location.search).get('lang') || langFromManifest || 'cpp';
+
+      history.replaceState(null, '', `?p=${encodeURIComponent(id)}&lang=${encodeURIComponent(lang)}`);
+      document.getElementById('listView').style.display = 'none';
+      document.getElementById('editorView').style.display = 'block';
+
+      setTimeout(()=>{ try{ if(window.monacoEditor && typeof window.monacoEditor.layout === 'function') window.monacoEditor.layout(); }catch(e){} }, 60);
+
+      const titleEl = document.getElementById('editorTitle');
+      const item = manifest.find(x => x.id === id) || { id };
+      titleEl.textContent = formatFullTitle(item);
+
+      const rawLinkWrap = document.getElementById('rawLinkWrap'); rawLinkWrap.innerHTML = '';
+      const filename = `${id}.${lang}`;
+      const rawA = el('a', { href: SOURCE_PREFIX + filename, target: '_blank', class: 'linkbtn' }, 'Open raw');
+      rawLinkWrap.appendChild(rawA);
+
+      // show loading indicator and render solution block immediately
+      showLoading(true);
+      try { renderSolutionForItem(item); } catch(e){ console.warn('renderSolution immediate failed', e); }
+
+      // fetch code file and show in Monaco
+      const path = SOURCE_PREFIX + filename;
+      fetch(path).then(r => {
+        if(!r.ok) throw new Error('File not found: ' + path);
+        return r.text();
+      }).then(code => {
+        let monacoLang = 'plaintext';
+        if(/^(c|cpp|c\+\+)$/.test(lang)) monacoLang = 'cpp';
+        else if(/^(py|python)$/.test(lang)) monacoLang = 'python';
+        else if(/^(java)$/.test(lang)) monacoLang = 'java';
+        else if(/^(js|javascript)$/.test(lang)) monacoLang = 'javascript';
+        else if(/^(ts|typescript)$/.test(lang)) monacoLang = 'typescript';
+
+        loadMonacoEditor(code, `${id}.${lang}`, monacoLang);
+      }).catch(err => {
+        loadMonacoEditor('// Could not load file: ' + err.message + '\n', `${id}.${lang}`, 'plaintext');
+      });
+    }
+
+    // back button
+    document.getElementById('backBtn').addEventListener('click', (ev) => { ev.preventDefault(); history.pushState({}, '', '/ccc/'); document.getElementById('editorView').style.display='none'; document.getElementById('listView').style.display='block'; });
+
+    // Rating/year header toggle (Year header)
+    const yearHeader = document.getElementById('yearHeader');
+    function updateYearHeaderVisual(){
+      yearHeader.textContent = 'Year ' + (yearSortAsc ? '▲' : '▼');
+    }
+    yearHeader.addEventListener('click', () => {
+      yearSortAsc = !yearSortAsc;
+      updateYearHeaderVisual();
+      renderTable(document.getElementById('search').value);
+    });
+
+    // load manifest
+    fetch(MANIFEST).then(r => {
+      if(!r.ok) throw new Error('Could not load problems.json');
+      return r.json();
+    }).then(data => {
+      manifest = data || [];
+      updateYearHeaderVisual();
+      renderTable();
+
+      const params = new URLSearchParams(location.search);
+      const p = params.get('p'); const l = params.get('lang');
+      if(p) setTimeout(()=> openProblem(p, l), 180);
+    }).catch(e => {
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="5">Could not load problems.json — create it in repo root.</td></tr>';
+      console.error(e);
+    });
+
+    // search handling
+    const searchInput = document.getElementById('search');
+    searchInput.addEventListener('input', () => renderTable(searchInput.value));
+
+    // AMD loader config for Monaco
+    var require = { paths: { vs: 'https://unpkg.com/monaco-editor@0.34.0/min/vs' } };
+
+    // Monaco loader + editor handling
+    let monacoLoading = false;
+    function loadMonacoEditor(code, filename, monacoLang){
+      function createModelAndAttach(text, language){
+        try{
+          const modelUri = monaco.Uri.parse('inmemory://model/' + filename);
+          let model = monaco.editor.getModel(modelUri);
+          if(model){
+            model.setValue(text);
+            try{ monaco.editor.setModelLanguage(model, language); }catch(e){}
+          } else {
+            model = monaco.editor.createModel(text, language, modelUri);
+          }
+
+          if(!window.monacoEditor || typeof window.monacoEditor.getModel !== 'function'){
+            window.monacoEditor = monaco.editor.create(document.getElementById('editor'), {
+              model: model,
+              language: language,
+              theme: 'vs-dark',
+              automaticLayout: true,
+              fontFamily: 'Monaco, Consolas, monospace',
+              fontSize: 13,
+              minimap: { enabled: false },
+              readOnly: false
+            });
+          } else {
+            window.monacoEditor.setModel(model);
+          }
+
+          // hide loading line now that model attached
+          try{ showLoading(false); }catch(e){}
+
+          try{ window.monacoEditor.layout(); }catch(e){}
+          setTimeout(()=>{ try{ window.monacoEditor.layout(); }catch(e){} }, 60);
+        }catch(err){
+          console.error('createModelAndAttach error', err);
+          try{
+            document.getElementById('editor').textContent = text;
+            showLoading(false);
+          }catch(e){}
+        }
+      }
+
+      if(typeof monaco !== 'undefined' && typeof monaco.editor !== 'undefined'){
+        try{ createModelAndAttach(code, monacoLang || 'plaintext'); return; }catch(e){ console.warn('attach immediate failed', e); }
+      }
+
+      if(monacoLoading){
+        return setTimeout(()=>loadMonacoEditor(code, filename, monacoLang), 250);
+      }
+
+      monacoLoading = true;
+      var loaderScript = document.createElement('script');
+      loaderScript.src = 'https://unpkg.com/monaco-editor@0.34.0/min/vs/loader.js';
+      loaderScript.onload = function(){
+        require(['vs/editor/editor.main'], function () {
+          try{ monaco.editor.setTheme('vs-dark'); }catch(e){}
+          try{ createModelAndAttach(code, monacoLang || 'plaintext'); }catch(err){
+            console.error('monaco init attach failed', err);
+            document.getElementById('editor').innerHTML = '<pre style="white-space:pre-wrap;color:#dbeafe;padding:12px;">' +
+              String(code).replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</pre>';
+            try{ showLoading(false); }catch(e){}
+          }
+        });
+      };
+      loaderScript.onerror = function(e){
+        console.error('Failed to load Monaco loader', e);
+        document.getElementById('editor').innerHTML = '<pre style="white-space:pre-wrap;color:#fca5a5;padding:12px;">Failed to load editor.</pre>';
+        try{ showLoading(false); }catch(e){}
+      };
+      document.body.appendChild(loaderScript);
+    }
+
+    // copy button
+    const copyBtn = document.getElementById('copyBtn');
+    const copyLabel = document.getElementById('copyLabel');
+    copyBtn.addEventListener('click', async () => {
+      let text = '';
+      try{
+        if(window.monacoEditor && typeof window.monacoEditor.getModel === 'function'){
+          const model = window.monacoEditor.getModel();
+          if(model) text = model.getValue();
+        }
+        if(!text){
+          const ed = document.getElementById('editor');
+          const pre = ed.querySelector('pre');
+          text = pre ? pre.textContent : ed.textContent || '';
+        }
+        if(!text) throw new Error('No code found to copy');
+        await navigator.clipboard.writeText(text);
+        copyLabel.textContent = 'Copied!';
+        copyBtn.style.color = 'white';
+        setTimeout(()=>{ copyLabel.textContent = 'Copy code'; copyBtn.style.color = ''; }, 1600);
+      }catch(err){
+        console.error('copy failed', err);
+        copyLabel.textContent = 'Copy failed';
+        setTimeout(()=>{ copyLabel.textContent = 'Copy code'; }, 1600);
+      }
+    });
+
+    // layout triggers & mutation observer
+    window.addEventListener('resize', ()=>{ try{ if(window.monacoEditor && typeof window.monacoEditor.layout === 'function') window.monacoEditor.layout(); }catch(e){} });
+    const editorView = document.getElementById('editorView');
+    const mo = new MutationObserver(() => {
+      try{ if(window.monacoEditor && typeof window.monacoEditor.layout === 'function') window.monacoEditor.layout(); }catch(e){}
+    });
+    mo.observe(editorView, { attributes: true, attributeFilter: ['style', 'class'], subtree: false });
+
+    // handle popstate
+    window.addEventListener('popstate', () => {
+      const p = new URLSearchParams(location.search).get('p');
+      if(p){
+        const l = new URLSearchParams(location.search).get('lang');
+        openProblem(p, l);
+      } else {
+        document.getElementById('editorView').style.display='none';
+        document.getElementById('listView').style.display='block';
+      }
+    });
+  </script>
+</body>
+</html>
