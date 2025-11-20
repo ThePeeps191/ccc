@@ -1,0 +1,4 @@
+[
+  {"id":"ccc25s1","title":"Positioning Peter's Paintings","sol":"test\nIt suffices to check whether n is greater than 2 and divisible by 2.\nAAApref[i] = pref[i - 1] + a[i]AAA"},
+  {"id":"ccc25s2","title":"Cryptogram Cracking Club","sol":"test\nIt suffices to check whether n is greater than 2 and divisible by 2.\nAAApref[i] = pref[i - 1] + a[i]AAA"}
+]
